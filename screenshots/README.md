@@ -1,3 +1,1 @@
-Add your application screenshots here.
-
-
+Add your application screenshots here
