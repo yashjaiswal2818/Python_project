@@ -157,6 +157,8 @@ class TimetableFrame(tk.Frame):
         dialog.configure(bg="#1e293b")
         dialog.transient(self)
         dialog.grab_set()
+        dialog.resizable(True, True)
+        dialog.minsize(480, 500)
         
         # Center dialog
         dialog.update_idletasks()
@@ -164,10 +166,29 @@ class TimetableFrame(tk.Frame):
         y = (dialog.winfo_screenheight() // 2) - (600 // 2)
         dialog.geometry(f"500x600+{x}+{y}")
         
-        # Content
-        content = tk.Frame(dialog, bg="#1e293b")
+        # Layout: scrollable form area + fixed footer
+        container = tk.Frame(dialog, bg="#1e293b")
+        container.pack(fill="both", expand=True)
+
+        # Scrollable area for the form
+        scroll_area = tk.Frame(container, bg="#1e293b")
+        scroll_area.pack(side="top", fill="both", expand=True)
+
+        canvas = tk.Canvas(scroll_area, bg="#1e293b", highlightthickness=0)
+        vbar = ttk.Scrollbar(scroll_area, orient="vertical", command=canvas.yview)
+        form_holder = tk.Frame(canvas, bg="#1e293b")
+
+        form_holder.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.create_window((0, 0), window=form_holder, anchor="nw")
+        canvas.configure(yscrollcommand=vbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        vbar.pack(side="right", fill="y")
+
+        # Inner padded form frame
+        content = tk.Frame(form_holder, bg="#1e293b")
         content.pack(fill="both", expand=True, padx=40, pady=40)
-        
+
         tk.Label(content,
                 text="Add New Class",
                 bg="#1e293b",
@@ -213,9 +234,11 @@ class TimetableFrame(tk.Frame):
         room_entry = ttk.Entry(content, style="Modern.TEntry", font=("Segoe UI", 11))
         room_entry.pack(fill="x", pady=(0, 30))
         
-        # Buttons
-        btn_frame = tk.Frame(content, bg="#1e293b")
-        btn_frame.pack(fill="x")
+        # Footer with buttons always visible
+        footer = tk.Frame(container, bg="#1e293b")
+        footer.pack(side="bottom", fill="x")
+        btn_frame = tk.Frame(footer, bg="#1e293b")
+        btn_frame.pack(fill="x", padx=40, pady=(0, 20))
         
         def save_class():
             subject = subject_entry.get().strip()
@@ -239,7 +262,7 @@ class TimetableFrame(tk.Frame):
         
         save_btn = ttk.Button(btn_frame, text="Save Class", style="Primary.TButton", command=save_class)
         save_btn.pack(side="left", expand=True, fill="x", padx=(0, 10))
-        
+
         cancel_btn = ttk.Button(btn_frame, text="Cancel", style="Secondary.TButton", command=dialog.destroy)
         cancel_btn.pack(side="right", expand=True, fill="x")
         
